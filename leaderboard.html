@@ -2,32 +2,34 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>TripVita | Hall of Fame</title>
+    <title>TripVita | Leaderboard</title>
     <style>
         :root { --primary: #EF7F1A; --dark: #1A1A1A; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--dark); color: white; margin: 0; padding: 50px 20px; }
-        .lb-container { background: white; color: var(--dark); border-radius: 24px; max-width: 800px; margin: auto; padding: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-        h1 { color: var(--primary); text-align: center; font-size: 32px; font-weight: 800; margin-bottom: 40px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 18px; color: #999; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #eee; }
-        td { padding: 18px; border-bottom: 1px solid #f8f8f8; font-weight: 600; font-size: 15px; }
+        .lb-container { background: white; color: var(--dark); border-radius: 24px; max-width: 800px; margin: auto; padding: 40px; }
         
+        .logo-container { text-align: center; margin-bottom: 20px; }
+        .brand-logo { max-width: 150px; }
+
+        h1 { color: var(--primary); text-align: center; font-size: 28px; margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 15px; color: #999; font-size: 11px; text-transform: uppercase; border-bottom: 2px solid #eee; }
+        td { padding: 15px; border-bottom: 1px solid #f8f8f8; font-weight: 600; }
         .rank-circle { background: #f0f0f0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 12px; }
         .top-3 { background: var(--primary); color: white; }
-        .region-pill { background: #eee; padding: 4px 10px; border-radius: 6px; font-size: 12px; color: #555; }
-        .score-highlight { color: var(--primary); font-size: 18px; font-weight: 800; }
-        
-        .loading-spinner { text-align: center; padding: 50px; color: #666; font-style: italic; }
+        .score-highlight { color: var(--primary); font-weight: 800; }
     </style>
 </head>
 <body>
     <div class="lb-container">
-        <h1>🏆 TripVita Leaderboard</h1>
-        <div id="loading" class="loading-spinner">Fetching top performers...</div>
-        <table id="lb-table" class="hidden">
+        <div class="logo-container">
+            <img src="https://lh3.googleusercontent.com/d/19M5OxrVAf2IjgHdOtLNEKTY-soDvqowE" alt="Tripjack Logo" class="brand-logo">
+        </div>
+        <h1>🏆 Hall of Fame</h1>
+        <table id="lb-table">
             <thead>
                 <tr>
-                    <th style="width: 50px;">Rank</th>
+                    <th>Rank</th>
                     <th>Name</th>
                     <th>Region</th>
                     <th>Score</th>
@@ -43,30 +45,18 @@
 
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwX0UBbdiBtBi2orr94rDiCmK94WecaFDRhmCtoUBsduOFn9MOsmLhe4jGv_0FXWaVf/exec';
-        
         async function fetchLeaderboard() {
-            try {
-                const res = await fetch(`${SCRIPT_URL}?action=getLeaderboard`);
-                const data = await res.json();
-                
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('lb-table').classList.remove('hidden');
-                
-                const body = document.getElementById('lb-body');
-                body.innerHTML = data.map((user, i) => `
-                    <tr>
-                        <td><div class="rank-circle ${i < 3 ? 'top-3' : ''}">${i + 1}</div></td>
-                        <td>${user.name}</td>
-                        <td><span class="region-pill">${user.region}</span></td>
-                        <td class="score-highlight">${user.score}/20</td>
-                        <td style="font-family: monospace;">${user.formattedTime}</td>
-                    </tr>
-                `).join('');
-            } catch (e) {
-                document.getElementById('loading').innerText = "Error loading leaderboard. Please refresh.";
-            }
+            const res = await fetch(`${SCRIPT_URL}?action=getLeaderboard`);
+            const data = await res.json();
+            document.getElementById('lb-body').innerHTML = data.map((user, i) => `
+                <tr>
+                    <td><div class="rank-circle ${i < 3 ? 'top-3' : ''}">${i + 1}</div></td>
+                    <td>${user.name}</td>
+                    <td>${user.region}</td>
+                    <td class="score-highlight">${user.score}/20</td>
+                    <td>${user.formattedTime}</td>
+                </tr>`).join('');
         }
-        
         fetchLeaderboard();
     </script>
 </body>
