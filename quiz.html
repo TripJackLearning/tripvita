@@ -3,161 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TripVita - Sales Skill Quiz</title>
+    <title>TripVita | Sales Excellence Quiz</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #2A2A2A; color: white; display: flex; justify-content: center; padding: 20px; }
-        .container { background: #fff; color: #2A2A2A; padding: 30px; border-radius: 12px; width: 100%; max-width: 600px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .brand-header { color: #EF7F1A; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #EF7F1A; padding-bottom: 10px; }
-        .score-board { background: #EF7F1A; color: white; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; margin-bottom: 20px; }
-        .hidden { display: none; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        button { width: 100%; background: #EF7F1A; color: white; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-        .option-btn { background: #f4f4f4; color: #2A2A2A; text-align: left; margin-bottom: 10px; border: 1px solid #ddd; }
-        .option-btn:hover { background: #eee; }
-        .explanation { background: #e8f5e9; padding: 15px; border-left: 5px solid #4caf50; margin-top: 15px; }
-        .correct { background: #4caf50 !important; color: white; }
-        .wrong { background: #f44336 !important; color: white; }
+        :root { --primary: #EF7F1A; --dark: #1A1A1A; --bg: #2A2A2A; --glass: rgba(255, 255, 255, 1); --success: #28a745; --error: #dc3545; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: white; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow-x: hidden; }
+        
+        /* Containers */
+        .quiz-card { background: var(--glass); color: var(--dark); width: 95%; max-width: 500px; border-radius: 24px; padding: 40px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); position: relative; overflow: hidden; min-height: 450px; display: flex; flex-direction: column; }
+        .hidden { display: none !important; }
+
+        /* Progress & Header */
+        .progress-bar { width: 100%; height: 6px; background: #eee; border-radius: 10px; margin-bottom: 25px; overflow: hidden; }
+        #progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        h1.brand { color: var(--primary); text-align: center; margin: 0 0 10px 0; font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+
+        /* Section Overlay (The Big Highlight) */
+        #section-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; text-align: center; animation: slideIn 0.4s ease-out; }
+        @keyframes slideIn { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        /* Inputs & Typography */
+        .input-group { margin-bottom: 15px; }
+        input, select { width: 100%; padding: 14px; border: 2px solid #eee; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; transition: border-color 0.3s; }
+        input:focus { border-color: var(--primary); }
+
+        .category-tag { color: var(--primary); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; }
+        #q-text { font-size: 19px; line-height: 1.4; margin-top: 5px; font-weight: 600; }
+
+        /* Options */
+        .option-group { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; flex-grow: 1; }
+        .opt-btn { background: #f8f9fa; border: 2px solid #eee; padding: 16px; border-radius: 14px; text-align: left; cursor: pointer; transition: all 0.2s; font-size: 15px; font-weight: 500; }
+        .opt-btn:hover:not(:disabled) { border-color: var(--primary); background: #fff8f2; transform: translateX(5px); }
+        .opt-btn.correct { background: var(--success); border-color: var(--success); color: white; }
+        .opt-btn.wrong { background: var(--error); border-color: var(--error); color: white; }
+        
+        /* Explanation Box */
+        .expl-box { background: #f0f7f1; padding: 20px; border-radius: 14px; border-left: 5px solid var(--success); margin-top: 10px; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .btn-primary { background: var(--dark); color: white; padding: 16px; border-radius: 14px; border: none; width: 100%; font-weight: 700; cursor: pointer; font-size: 16px; transition: background 0.3s; }
+        .btn-primary:hover { background: #000; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="brand-header">TripVita</h1>
-        
-        <div id="registration-form">
-            <h3>Enter Details to Start</h3>
-            <input type="text" id="userName" placeholder="Full Name" required>
-            <input type="email" id="userEmail" placeholder="Email ID" required>
-            <select id="userRegion">
-                <option value="">Select Region</option>
-                <option value="North">North</option>
-                <option value="South">South</option>
-                <option value="West">West</option>
-                <option value="East">East</option>
-                <option value="OBJ">OBJ</option>
-            </select>
-            <button onclick="startQuiz()">Start Quiz</button>
+
+    <div class="quiz-card">
+        <div id="section-overlay" class="hidden">
+            <p style="font-weight: 600; letter-spacing: 2px; opacity: 0.9;">GET READY FOR</p>
+            <h1 id="overlay-title" style="font-size: 3.5rem; margin: 10px 0; font-weight: 900;">SECTION</h1>
+            <button class="btn-primary" style="width: auto; padding: 15px 50px; background: white; color: var(--primary); border-radius: 50px;" onclick="dismissOverlay()">START NOW</button>
         </div>
 
-        <div id="quiz-area" class="hidden">
-            <div class="score-board">Score: <span id="currentScore">0</span> | Time: <span id="timer">00:00</span></div>
-            <h4 id="category-label" style="color: #EF7F1A"></h4>
-            <p id="question-text" style="font-weight: bold; font-size: 18px;"></p>
-            <div id="options-container"></div>
-            <div id="explanation-area" class="explanation hidden">
-                <strong>Explanation:</strong> <p id="explanation-text"></p>
-                <button id="next-btn" onclick="nextQuestion()">Next</button>
+        <div id="reg-screen">
+            <h1 class="brand">TripVita</h1>
+            <p style="text-align: center; color: #666; margin-bottom: 30px;">Complete the 20-question assessment to measure your sales expertise.</p>
+            <div class="input-group"><input type="text" id="uName" placeholder="Your Full Name"></div>
+            <div class="input-group"><input type="email" id="uEmail" placeholder="Work Email Address"></div>
+            <div class="input-group">
+                <select id="uRegion">
+                    <option value="">Select Your Region</option>
+                    <option>North</option><option>South</option><option>West</option><option>East</option><option>OBJ</option>
+                </select>
             </div>
+            <button class="btn-primary" style="background: var(--primary);" onclick="initQuiz()">Start TripVita</button>
         </div>
 
-        <div id="result-area" class="hidden" style="text-align: center;">
-            <h2>Quiz Completed!</h2>
-            <h1 id="final-score" style="color: #EF7F1A;"></h1>
-            <p id="final-time"></p>
-            <button onclick="location.reload()">Retake Quiz</button>
-            <br><br>
-            <button onclick="window.location.href='leaderboard.html'" style="background: #2A2A2A;">View Leaderboard</button>
+        <div id="quiz-screen" class="hidden">
+            <div class="progress-bar"><div id="progress-fill"></div></div>
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <span class="category-tag" id="cat-badge">Section</span>
+                <span id="timer-text" style="font-family: monospace; font-weight: 700; color: var(--primary); font-size: 18px;">00:00</span>
+            </div>
+            <div id="q-text">Loading question...</div>
+            <div id="opt-box" class="option-group"></div>
+            
+            <div id="expl-box" class="hidden">
+                <div class="expl-box">
+                    <strong style="font-size: 12px; color: var(--success); text-transform: uppercase;">Correct Insight:</strong>
+                    <p id="expl-text" style="margin: 8px 0; font-size: 14px; color: #333; line-height: 1.5;"></p>
+                </div>
+                <button class="btn-primary" style="margin-top: 15px;" onclick="handleNext()">Next Question →</button>
+            </div>
         </div>
     </div>
 
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwX0UBbdiBtBi2orr94rDiCmK94WecaFDRhmCtoUBsduOFn9MOsmLhe4jGv_0FXWaVf/exec';
-        let questions = [];
-        let currentIndex = 0;
-        let score = 0;
-        let startTime;
-        let timerInterval;
+        let questions = [], currentIdx = 0, score = 0, timer, startT, currentCat = "";
 
-        async function startQuiz() {
-            const name = document.getElementById('userName').value;
-            const email = document.getElementById('userEmail').value;
-            const region = document.getElementById('userRegion').value;
-            if(!name || !email || !region) return alert("Please fill all fields");
+        async function initQuiz() {
+            const name = document.getElementById('uName').value;
+            const email = document.getElementById('uEmail').value;
+            const region = document.getElementById('uRegion').value;
 
-            document.getElementById('registration-form').classList.add('hidden');
-            document.getElementById('quiz-area').classList.remove('hidden');
+            if(!name || !email || !region) return alert("Please provide all details to begin.");
 
-            const response = await fetch(`${SCRIPT_URL}?action=getQuestions`);
-            questions = await response.json();
-            
-            startTime = new Date();
-            startTimer();
-            showQuestion();
+            document.getElementById('reg-screen').classList.add('hidden');
+            document.getElementById('q-text').innerText = "Fetching the latest TripVita questions...";
+            document.getElementById('quiz-screen').classList.remove('hidden');
+
+            try {
+                const resp = await fetch(`${SCRIPT_URL}?action=getQuestions`);
+                questions = await resp.json();
+                startT = new Date();
+                runTimer();
+                showStep();
+            } catch (e) {
+                alert("Error loading questions. Please check your internet.");
+            }
         }
 
-        function startTimer() {
-            timerInterval = setInterval(() => {
-                const diff = Math.floor((new Date() - startTime) / 1000);
-                const m = String(Math.floor(diff / 60)).padStart(2, '0');
-                const s = String(diff % 60).padStart(2, '0');
-                document.getElementById('timer').innerText = `${m}:${s}`;
+        function runTimer() {
+            timer = setInterval(() => {
+                const diff = Math.floor((new Date() - startT) / 1000);
+                const m = String(Math.floor(diff/60)).padStart(2,'0');
+                const s = String(diff%60).padStart(2,'0');
+                document.getElementById('timer-text').innerText = `${m}:${s}`;
             }, 1000);
         }
 
-        function showQuestion() {
-            const q = questions[currentIndex];
-            document.getElementById('category-label').innerText = `Section: ${q.category}`;
-            document.getElementById('question-text').innerText = `${currentIndex + 1}. ${q.question}`;
-            document.getElementById('explanation-area').classList.add('hidden');
+        function showStep() {
+            const q = questions[currentIdx];
             
-            const container = document.getElementById('options-container');
-            container.innerHTML = '';
+            // Section Change Logic
+            if (q.category !== currentCat) {
+                currentCat = q.category;
+                showSectionOverlay(currentCat);
+                return;
+            }
+
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('progress-fill').style.width = `${((currentIdx + 1) / questions.length) * 100}%`;
+            document.getElementById('cat-badge').innerText = q.category;
+            document.getElementById('q-text').innerText = q.question;
+            document.getElementById('expl-box').classList.add('hidden');
             
-            q.options.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.innerText = opt;
-                btn.onclick = () => selectAnswer(btn, opt, q.answer, q.explanation);
-                container.appendChild(btn);
+            const box = document.getElementById('opt-box');
+            box.innerHTML = '';
+            
+            q.options.forEach(o => {
+                const b = document.createElement('button');
+                b.className = 'opt-btn';
+                b.innerText = o;
+                b.onclick = () => {
+                    if(o === q.answer) { 
+                        b.classList.add('correct'); 
+                        score++; 
+                    } else { 
+                        b.classList.add('wrong'); 
+                        // Highlight the correct one
+                        Array.from(box.children).forEach(child => {
+                            if(child.innerText === q.answer) child.classList.add('correct');
+                        });
+                    }
+                    // Lock all buttons
+                    Array.from(box.children).forEach(btn => btn.disabled = true);
+                    document.getElementById('expl-text').innerText = q.explanation;
+                    document.getElementById('expl-box').classList.remove('hidden');
+                };
+                box.appendChild(b);
             });
         }
 
-        function selectAnswer(btn, selected, correct, explanation) {
-            const btns = document.querySelectorAll('.option-btn');
-            btns.forEach(b => b.disabled = true);
+        function showSectionOverlay(title) {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('overlay-title').innerText = title.toUpperCase();
+            document.getElementById('section-overlay').classList.remove('hidden');
+        }
+
+        function dismissOverlay() {
+            document.getElementById('section-overlay').classList.add('hidden');
+            showStep();
+        }
+
+        function handleNext() {
+            currentIdx++;
+            if(currentIdx < questions.length) showStep();
+            else finish();
+        }
+
+        async function finish() {
+            clearInterval(timer);
+            const finalTime = document.getElementById('timer-text').innerText;
+            const totalSecs = Math.floor((new Date() - startT) / 1000);
             
-            if(selected === correct) {
-                btn.classList.add('correct');
-                score++;
-                document.getElementById('currentScore').innerText = score;
-            } else {
-                btn.classList.add('wrong');
-                btns.forEach(b => { if(b.innerText === correct) b.classList.add('correct'); });
-            }
-
-            document.getElementById('explanation-text').innerText = explanation;
-            document.getElementById('explanation-area').classList.remove('hidden');
-        }
-
-        async function nextQuestion() {
-            currentIndex++;
-            if(currentIndex < questions.length) {
-                showQuestion();
-            } else {
-                finishQuiz();
-            }
-        }
-
-        async function finishQuiz() {
-            clearInterval(timerInterval);
-            const totalSeconds = Math.floor((new Date() - startTime) / 1000);
-            const formattedTime = document.getElementById('timer').innerText;
-
             const payload = {
-                name: document.getElementById('userName').value,
-                email: document.getElementById('userEmail').value,
-                region: document.getElementById('userRegion').value,
+                name: document.getElementById('uName').value,
+                email: document.getElementById('uEmail').value,
+                region: document.getElementById('uRegion').value,
                 score: score,
-                timeTakenSeconds: totalSeconds,
-                timeFormatted: formattedTime
+                timeTakenSeconds: totalSecs,
+                timeFormatted: finalTime
             };
+            
+            // Visual Finish
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#EF7F1A', '#1A1A1A', '#FFFFFF'] });
+            
+            document.querySelector('.quiz-card').innerHTML = `
+                <h1 class="brand">TripVita Completed!</h1>
+                <div style="text-align:center; padding: 40px 0;">
+                    <p style="font-size: 18px; color: #666; margin:0;">Your Final Score</p>
+                    <h1 style="font-size: 80px; margin: 10px 0; color: var(--primary)">${score}</h1>
+                    <p style="font-weight: 700; color: #333;">Time Taken: ${finalTime}</p>
+                </div>
+                <button class="btn-primary" onclick="location.href='leaderboard.html'">View Global Leaderboard</button>
+            `;
 
+            // Background upload
             await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
-
-            document.getElementById('quiz-area').classList.add('hidden');
-            document.getElementById('result-area').classList.remove('hidden');
-            document.getElementById('final-score').innerText = `Final Score: ${score}/${questions.length}`;
-            document.getElementById('final-time').innerText = `Time: ${formattedTime}`;
         }
     </script>
 </body>
