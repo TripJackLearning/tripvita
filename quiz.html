@@ -12,14 +12,14 @@
         .hidden { display: none !important; }
         .logo-container { text-align: center; margin-bottom: 25px; }
         .brand-logo { max-width: 180px; height: auto; }
-        #section-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; text-align: center; }
+        #section-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; text-align: center; padding: 20px; box-sizing: border-box; }
         .progress-bar { width: 100%; height: 8px; background: #eee; border-radius: 10px; margin-bottom: 25px; overflow: hidden; }
         #progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.4s; }
         input, select { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 12px; font-size: 16px; box-sizing: border-box; margin-bottom: 15px; outline: none; }
         .category-tag { color: var(--primary); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
         #q-text { font-size: 19px; line-height: 1.4; font-weight: 600; margin: 15px 0; min-height: 60px; }
         .option-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        .opt-btn { background: #f8f9fa; border: 2px solid #eee; padding: 16px; border-radius: 14px; text-align: left; cursor: pointer; font-size: 15px; transition: 0.2s; font-weight: 500; }
+        .opt-btn { background: #f8f9fa; border: 2px solid #eee; padding: 16px; border-radius: 14px; text-align: left; cursor: pointer; font-size: 15px; transition: 0.2s; font-weight: 500; color: var(--dark); }
         .opt-btn:hover:not(:disabled) { border-color: var(--primary); background: #fff8f2; }
         .opt-btn.correct { background: var(--success) !important; border-color: var(--success) !important; color: white !important; }
         .opt-btn.wrong { background: var(--error) !important; border-color: var(--error) !important; color: white !important; }
@@ -31,17 +31,18 @@
 
     <div class="quiz-card">
         <div class="logo-container">
-            <img src="https://lh3.googleusercontent.com/d/19M5OxrVAf2IjgHdOtLNEKTY-soDvqowE" alt="Tripjack Logo" class="brand-logo">
+            <img src="https://lh3.googleusercontent.com/d/19M5OxrVAf2IjgHdOtLNEKTY-soDvqowE" alt="Logo" class="brand-logo">
         </div>
 
         <div id="section-overlay" class="hidden">
-            <p style="letter-spacing: 2px; font-weight: 600;">UP NEXT</p>
-            <h1 id="overlay-title" style="font-size: 2.5rem; margin: 10px 0;">SECTION</h1>
+            <p style="letter-spacing: 2px; font-weight: 600; margin-bottom: 5px;">UP NEXT</p>
+            <h1 id="overlay-title" style="font-size: 2rem; margin: 10px 0; font-weight: 800;">SECTION</h1>
             <button class="btn-primary" style="width: auto; padding: 15px 50px; background: white; color: var(--primary); border-radius: 50px;" onclick="dismissOverlay()">CONTINUE</button>
         </div>
 
         <div id="reg-screen">
-            <h2 style="text-align: center; color: var(--primary); margin-top: 0;">TripVita</h2>
+            <h2 style="text-align: center; color: var(--primary); margin-top: 0;">TripJack Assessment</h2>
+            <p style="text-align: center; font-size: 14px; color: #666; margin-bottom: 20px;">Please enter your details to begin.</p>
             <input type="text" id="uName" placeholder="Full Name" required>
             <input type="email" id="uEmail" placeholder="Work Email" required>
             <select id="uRegion" required>
@@ -53,7 +54,7 @@
 
         <div id="quiz-screen" class="hidden">
             <div class="progress-bar"><div id="progress-fill"></div></div>
-            <div style="display: flex; justify-content: space-between;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span class="category-tag" id="cat-badge">Section</span>
                 <span id="timer-text" style="font-weight: 700; color: var(--primary); font-family: monospace; font-size: 18px;">00:00</span>
             </div>
@@ -61,38 +62,50 @@
             <div id="opt-box" class="option-group"></div>
             <div id="expl-box" class="hidden">
                 <div class="expl-box"><strong>Explanation:</strong> <span id="expl-text"></span></div>
-                <button class="btn-primary" onclick="handleNext()">Continue →</button>
+                <button class="btn-primary" onclick="handleNext()">Next Question →</button>
             </div>
         </div>
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwX0UBbdiBtBi2orr94rDiCmK94WecaFDRhmCtoUBsduOFn9MOsmLhe4jGv_0FXWaVf/exec';
+        // YOUR SPECIFIC DEPLOYMENT URL
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxw502wHW183rThM9gNGnmCW9JMKNkR0deIGzC4Vocy1A2wtJWsW5REnHFmUqJ6lsTZ/exec';
+        
         let questions = [], currentIdx = 0, score = 0, timer, startT, currentCat = "";
         let userResponseLog = [];
 
         async function initQuiz() {
-            if(!document.getElementById('uName').value || !document.getElementById('uRegion').value) return alert("Fill all fields.");
+            const name = document.getElementById('uName').value;
+            const region = document.getElementById('uRegion').value;
+            if(!name || !region) return alert("Please fill in Name and Region.");
+
             document.getElementById('reg-screen').classList.add('hidden');
             document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('q-text').innerText = "Loading Assessment...";
+
             try {
                 const resp = await fetch(`${SCRIPT_URL}?action=getQuestions`);
                 questions = await resp.json();
                 startT = new Date();
                 runTimer();
                 showStep();
-            } catch (e) { alert("Error loading quiz."); }
+            } catch (e) { 
+                alert("Connection Error. Please check your internet and refresh."); 
+            }
         }
 
         function runTimer() {
             timer = setInterval(() => {
                 const diff = Math.floor((new Date() - startT) / 1000);
-                document.getElementById('timer-text').innerText = `${String(Math.floor(diff/60)).padStart(2,'0')}:${String(diff%60).padStart(2,'0')}`;
+                const mm = String(Math.floor(diff/60)).padStart(2,'0');
+                const ss = String(diff%60).padStart(2,'0');
+                document.getElementById('timer-text').innerText = `${mm}:${ss}`;
             }, 1000);
         }
 
         function showStep() {
             const q = questions[currentIdx];
+            // Check for Section Change Overlay
             if (q.category !== currentCat) {
                 currentCat = q.category;
                 document.getElementById('quiz-screen').classList.add('hidden');
@@ -123,12 +136,13 @@
                 b.className = 'opt-btn';
                 b.innerText = o;
                 b.onclick = function() {
-                    // --- STABILIZED LOGIC ---
+                    // --- NORMALIZATION LOGIC (Fixes the "Right is Wrong" bug) ---
                     const userClean = o.toString().trim().toLowerCase();
                     const correctClean = q.answer.toString().trim().toLowerCase();
                     const isCorrect = (userClean === correctClean);
                     
-                    userResponseLog.push({ question: q.question, isCorrect: isCorrect });
+                    // Add to log for Spreadsheet columns
+                    userResponseLog.push({ isCorrect: isCorrect });
 
                     if(isCorrect) {
                         this.classList.add('correct');
@@ -152,13 +166,17 @@
 
         function handleNext() {
             currentIdx++;
-            if(currentIdx < questions.length) showStep();
-            else finish();
+            if(currentIdx < questions.length) {
+                showStep();
+            } else {
+                finish();
+            }
         }
 
         async function finish() {
             clearInterval(timer);
             const timeStr = document.getElementById('timer-text').innerText;
+            
             const payload = {
                 name: document.getElementById('uName').value,
                 email: document.getElementById('uEmail').value,
@@ -169,13 +187,22 @@
                 details: userResponseLog
             };
 
-            fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            // Send to Google Sheets
+            fetch(SCRIPT_URL, { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                body: JSON.stringify(payload) 
+            });
+
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
 
             document.querySelector('.quiz-card').innerHTML = `
                 <div class="logo-container"><img src="https://lh3.googleusercontent.com/d/19M5OxrVAf2IjgHdOtLNEKTY-soDvqowE" class="brand-logo"></div>
-                <h2 style="text-align:center">Assessment Complete</h2>
-                <h1 style="text-align:center; color:var(--primary); font-size: 64px; margin: 10px 0;">${score}/${questions.length}</h1>
+                <h2 style="text-align:center">Quiz Completed!</h2>
+                <div style="text-align:center; padding: 20px 0;">
+                    <h1 style="font-size: 72px; margin: 10px 0; color: var(--primary);">${score}/${questions.length}</h1>
+                    <p style="font-weight: 700;">Result syncing to spreadsheet...</p>
+                </div>
                 <button class="btn-primary" onclick="location.href='leaderboard.html'">View Leaderboard</button>
             `;
         }
