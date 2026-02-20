@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TripVita - Sales Skill Quiz</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #2A2A2A; color: white; display: flex; justify-content: center; padding: 20px; }
+        .container { background: #fff; color: #2A2A2A; padding: 30px; border-radius: 12px; width: 100%; max-width: 600px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .brand-header { color: #EF7F1A; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #EF7F1A; padding-bottom: 10px; }
+        .score-board { background: #EF7F1A; color: white; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; margin-bottom: 20px; }
+        .hidden { display: none; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; background: #EF7F1A; color: white; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .option-btn { background: #f4f4f4; color: #2A2A2A; text-align: left; margin-bottom: 10px; border: 1px solid #ddd; }
+        .option-btn:hover { background: #eee; }
+        .explanation { background: #e8f5e9; padding: 15px; border-left: 5px solid #4caf50; margin-top: 15px; }
+        .correct { background: #4caf50 !important; color: white; }
+        .wrong { background: #f44336 !important; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="brand-header">TripVita</h1>
+        
+        <div id="registration-form">
+            <h3>Enter Details to Start</h3>
+            <input type="text" id="userName" placeholder="Full Name" required>
+            <input type="email" id="userEmail" placeholder="Email ID" required>
+            <select id="userRegion">
+                <option value="">Select Region</option>
+                <option value="North">North</option>
+                <option value="South">South</option>
+                <option value="West">West</option>
+                <option value="East">East</option>
+                <option value="OBJ">OBJ</option>
+            </select>
+            <button onclick="startQuiz()">Start Quiz</button>
+        </div>
+
+        <div id="quiz-area" class="hidden">
+            <div class="score-board">Score: <span id="currentScore">0</span> | Time: <span id="timer">00:00</span></div>
+            <h4 id="category-label" style="color: #EF7F1A"></h4>
+            <p id="question-text" style="font-weight: bold; font-size: 18px;"></p>
+            <div id="options-container"></div>
+            <div id="explanation-area" class="explanation hidden">
+                <strong>Explanation:</strong> <p id="explanation-text"></p>
+                <button id="next-btn" onclick="nextQuestion()">Next</button>
+            </div>
+        </div>
+
+        <div id="result-area" class="hidden" style="text-align: center;">
+            <h2>Quiz Completed!</h2>
+            <h1 id="final-score" style="color: #EF7F1A;"></h1>
+            <p id="final-time"></p>
+            <button onclick="location.reload()">Retake Quiz</button>
+            <br><br>
+            <button onclick="window.location.href='leaderboard.html'" style="background: #2A2A2A;">View Leaderboard</button>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwX0UBbdiBtBi2orr94rDiCmK94WecaFDRhmCtoUBsduOFn9MOsmLhe4jGv_0FXWaVf/exec';
+        let questions = [];
+        let currentIndex = 0;
+        let score = 0;
+        let startTime;
+        let timerInterval;
+
+        async function startQuiz() {
+            const name = document.getElementById('userName').value;
+            const email = document.getElementById('userEmail').value;
+            const region = document.getElementById('userRegion').value;
+            if(!name || !email || !region) return alert("Please fill all fields");
+
+            document.getElementById('registration-form').classList.add('hidden');
+            document.getElementById('quiz-area').classList.remove('hidden');
+
+            const response = await fetch(`${SCRIPT_URL}?action=getQuestions`);
+            questions = await response.json();
+            
+            startTime = new Date();
+            startTimer();
+            showQuestion();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const diff = Math.floor((new Date() - startTime) / 1000);
+                const m = String(Math.floor(diff / 60)).padStart(2, '0');
+                const s = String(diff % 60).padStart(2, '0');
+                document.getElementById('timer').innerText = `${m}:${s}`;
+            }, 1000);
+        }
+
+        function showQuestion() {
+            const q = questions[currentIndex];
+            document.getElementById('category-label').innerText = `Section: ${q.category}`;
+            document.getElementById('question-text').innerText = `${currentIndex + 1}. ${q.question}`;
+            document.getElementById('explanation-area').classList.add('hidden');
+            
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => selectAnswer(btn, opt, q.answer, q.explanation);
+                container.appendChild(btn);
+            });
+        }
+
+        function selectAnswer(btn, selected, correct, explanation) {
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach(b => b.disabled = true);
+            
+            if(selected === correct) {
+                btn.classList.add('correct');
+                score++;
+                document.getElementById('currentScore').innerText = score;
+            } else {
+                btn.classList.add('wrong');
+                btns.forEach(b => { if(b.innerText === correct) b.classList.add('correct'); });
+            }
+
+            document.getElementById('explanation-text').innerText = explanation;
+            document.getElementById('explanation-area').classList.remove('hidden');
+        }
+
+        async function nextQuestion() {
+            currentIndex++;
+            if(currentIndex < questions.length) {
+                showQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        async function finishQuiz() {
+            clearInterval(timerInterval);
+            const totalSeconds = Math.floor((new Date() - startTime) / 1000);
+            const formattedTime = document.getElementById('timer').innerText;
+
+            const payload = {
+                name: document.getElementById('userName').value,
+                email: document.getElementById('userEmail').value,
+                region: document.getElementById('userRegion').value,
+                score: score,
+                timeTakenSeconds: totalSeconds,
+                timeFormatted: formattedTime
+            };
+
+            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+
+            document.getElementById('quiz-area').classList.add('hidden');
+            document.getElementById('result-area').classList.remove('hidden');
+            document.getElementById('final-score').innerText = `Final Score: ${score}/${questions.length}`;
+            document.getElementById('final-time').innerText = `Time: ${formattedTime}`;
+        }
+    </script>
+</body>
+</html>
