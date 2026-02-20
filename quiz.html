@@ -16,17 +16,15 @@
         .progress-bar { width: 100%; height: 8px; background: #eee; border-radius: 10px; margin-bottom: 25px; overflow: hidden; }
         #progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.4s; }
         input, select { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 12px; font-size: 16px; box-sizing: border-box; margin-bottom: 15px; outline: none; }
-        input:focus { border-color: var(--primary); }
         .category-tag { color: var(--primary); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
         #q-text { font-size: 19px; line-height: 1.4; font-weight: 600; margin: 15px 0; min-height: 60px; }
         .option-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
         .opt-btn { background: #f8f9fa; border: 2px solid #eee; padding: 16px; border-radius: 14px; text-align: left; cursor: pointer; font-size: 15px; transition: 0.2s; font-weight: 500; }
-        .opt-btn:hover:not(:disabled) { border-color: var(--primary); background: #fff8f2; transform: translateX(4px); }
-        .opt-btn.correct { background: var(--success); border-color: var(--success); color: white; }
-        .opt-btn.wrong { background: var(--error); border-color: var(--error); color: white; }
-        .expl-box { background: #f0f7f1; padding: 15px; border-radius: 12px; border-left: 5px solid var(--success); margin-bottom: 15px; font-size: 14px; line-height: 1.5; color: #333; }
-        .btn-primary { background: var(--dark); color: white; padding: 18px; border-radius: 14px; border: none; width: 100%; font-weight: 700; cursor: pointer; font-size: 16px; transition: 0.3s; }
-        .btn-primary:hover { background: #000; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .opt-btn:hover:not(:disabled) { border-color: var(--primary); background: #fff8f2; }
+        .opt-btn.correct { background: var(--success) !important; border-color: var(--success) !important; color: white !important; }
+        .opt-btn.wrong { background: var(--error) !important; border-color: var(--error) !important; color: white !important; }
+        .expl-box { background: #f0f7f1; padding: 15px; border-radius: 12px; border-left: 5px solid var(--success); margin-bottom: 15px; font-size: 14px; color: #333; }
+        .btn-primary { background: var(--dark); color: white; padding: 18px; border-radius: 14px; border: none; width: 100%; font-weight: 700; cursor: pointer; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -37,14 +35,13 @@
         </div>
 
         <div id="section-overlay" class="hidden">
-            <p style="letter-spacing: 2px; font-weight: 600; opacity: 0.9;">GET READY FOR</p>
-            <h1 id="overlay-title" style="font-size: 2.5rem; margin: 10px 0; font-weight: 900;">SECTION</h1>
-            <button class="btn-primary" style="width: auto; padding: 15px 50px; background: white; color: var(--primary); border-radius: 50px;" onclick="dismissOverlay()">START SECTION</button>
+            <p style="letter-spacing: 2px; font-weight: 600;">UP NEXT</p>
+            <h1 id="overlay-title" style="font-size: 2.5rem; margin: 10px 0;">SECTION</h1>
+            <button class="btn-primary" style="width: auto; padding: 15px 50px; background: white; color: var(--primary); border-radius: 50px;" onclick="dismissOverlay()">CONTINUE</button>
         </div>
 
         <div id="reg-screen">
             <h2 style="text-align: center; color: var(--primary); margin-top: 0;">TripVita</h2>
-            <p style="text-align: center; color: #666; font-size: 14px; margin-bottom: 20px;">Sales Excellence Assessment</p>
             <input type="text" id="uName" placeholder="Full Name" required>
             <input type="email" id="uEmail" placeholder="Work Email" required>
             <select id="uRegion" required>
@@ -56,18 +53,14 @@
 
         <div id="quiz-screen" class="hidden">
             <div class="progress-bar"><div id="progress-fill"></div></div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; justify-content: space-between;">
                 <span class="category-tag" id="cat-badge">Section</span>
                 <span id="timer-text" style="font-weight: 700; color: var(--primary); font-family: monospace; font-size: 18px;">00:00</span>
             </div>
             <div id="q-text"></div>
             <div id="opt-box" class="option-group"></div>
-            
             <div id="expl-box" class="hidden">
-                <div class="expl-box">
-                    <strong style="display:block; margin-bottom: 5px; color: var(--success);">EXPLANATION:</strong>
-                    <span id="expl-text"></span>
-                </div>
+                <div class="expl-box"><strong>Explanation:</strong> <span id="expl-text"></span></div>
                 <button class="btn-primary" onclick="handleNext()">Continue →</button>
             </div>
         </div>
@@ -75,54 +68,31 @@
 
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwX0UBbdiBtBi2orr94rDiCmK94WecaFDRhmCtoUBsduOFn9MOsmLhe4jGv_0FXWaVf/exec';
-        
-        // Global State
-        let questions = [];
-        let currentIdx = 0;
-        let score = 0;
-        let timer;
-        let startT;
-        let currentCat = "";
-        let userResponseLog = []; // This MUST collect data
+        let questions = [], currentIdx = 0, score = 0, timer, startT, currentCat = "";
+        let userResponseLog = [];
 
         async function initQuiz() {
-            const name = document.getElementById('uName').value;
-            const email = document.getElementById('uEmail').value;
-            const region = document.getElementById('uRegion').value;
-            
-            if(!name || !email || !region) {
-                alert("Please complete all fields to start.");
-                return;
-            }
-
+            if(!document.getElementById('uName').value || !document.getElementById('uRegion').value) return alert("Fill all fields.");
             document.getElementById('reg-screen').classList.add('hidden');
             document.getElementById('quiz-screen').classList.remove('hidden');
-            document.getElementById('q-text').innerText = "Fetching your questions...";
-            
             try {
                 const resp = await fetch(`${SCRIPT_URL}?action=getQuestions`);
                 questions = await resp.json();
                 startT = new Date();
                 runTimer();
                 showStep();
-            } catch (e) { 
-                alert("Connection error. Please refresh and try again."); 
-            }
+            } catch (e) { alert("Error loading quiz."); }
         }
 
         function runTimer() {
             timer = setInterval(() => {
                 const diff = Math.floor((new Date() - startT) / 1000);
-                const mm = String(Math.floor(diff/60)).padStart(2,'0');
-                const ss = String(diff%60).padStart(2,'0');
-                document.getElementById('timer-text').innerText = `${mm}:${ss}`;
+                document.getElementById('timer-text').innerText = `${String(Math.floor(diff/60)).padStart(2,'0')}:${String(diff%60).padStart(2,'0')}`;
             }, 1000);
         }
 
         function showStep() {
             const q = questions[currentIdx];
-            
-            // Check for Section Change Overlay
             if (q.category !== currentCat) {
                 currentCat = q.category;
                 document.getElementById('quiz-screen').classList.add('hidden');
@@ -130,7 +100,6 @@
                 document.getElementById('section-overlay').classList.remove('hidden');
                 return;
             }
-
             renderQuestion(q);
         }
 
@@ -154,28 +123,25 @@
                 b.className = 'opt-btn';
                 b.innerText = o;
                 b.onclick = function() {
-                    const isCorrect = (o === q.answer);
+                    // --- STABILIZED LOGIC ---
+                    const userClean = o.toString().trim().toLowerCase();
+                    const correctClean = q.answer.toString().trim().toLowerCase();
+                    const isCorrect = (userClean === correctClean);
                     
-                    // FORCE LOGGING OF EACH ANSWER
-                    userResponseLog.push({
-                        question: q.question,
-                        category: q.category,
-                        userAnswer: o,
-                        isCorrect: isCorrect
-                    });
-                    
-                    if(isCorrect) { 
-                        this.classList.add('correct'); 
-                        score++; 
-                    } else { 
-                        this.classList.add('wrong'); 
-                        // Highlight correct answer
+                    userResponseLog.push({ question: q.question, isCorrect: isCorrect });
+
+                    if(isCorrect) {
+                        this.classList.add('correct');
+                        score++;
+                    } else {
+                        this.classList.add('wrong');
+                        // Find and highlight correct answer green
                         Array.from(box.children).forEach(btn => {
-                            if(btn.innerText === q.answer) btn.classList.add('correct');
+                            if(btn.innerText.toString().trim().toLowerCase() === correctClean) {
+                                btn.classList.add('correct');
+                            }
                         });
                     }
-
-                    // Disable all buttons
                     Array.from(box.children).forEach(btn => btn.disabled = true);
                     document.getElementById('expl-text').innerText = q.explanation;
                     document.getElementById('expl-box').classList.remove('hidden');
@@ -186,51 +152,31 @@
 
         function handleNext() {
             currentIdx++;
-            if(currentIdx < questions.length) {
-                showStep();
-            } else {
-                finish();
-            }
+            if(currentIdx < questions.length) showStep();
+            else finish();
         }
 
         async function finish() {
             clearInterval(timer);
             const timeStr = document.getElementById('timer-text').innerText;
-            const totalSecs = Math.floor((new Date() - startT) / 1000);
-            
             const payload = {
                 name: document.getElementById('uName').value,
                 email: document.getElementById('uEmail').value,
                 region: document.getElementById('uRegion').value,
                 score: score,
-                timeTakenSeconds: totalSecs,
+                timeTakenSeconds: Math.floor((new Date() - startT) / 1000),
                 timeFormatted: timeStr,
-                details: userResponseLog // This MUST be sent
+                details: userResponseLog
             };
 
-            // Post to Google (No-Cors mode for simple submission)
-            fetch(SCRIPT_URL, { 
-                method: 'POST', 
-                mode: 'no-cors', 
-                body: JSON.stringify(payload) 
-            });
-
-            confetti({ 
-                particleCount: 150, 
-                spread: 70, 
-                origin: { y: 0.6 },
-                colors: ['#EF7F1A', '#1A1A1A']
-            });
+            fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
 
             document.querySelector('.quiz-card').innerHTML = `
                 <div class="logo-container"><img src="https://lh3.googleusercontent.com/d/19M5OxrVAf2IjgHdOtLNEKTY-soDvqowE" class="brand-logo"></div>
-                <h2 style="text-align:center">Assessment Complete!</h2>
-                <div style="text-align:center; padding: 20px 0;">
-                    <p style="margin:0; color:#666;">Final Score</p>
-                    <h1 style="font-size: 72px; margin: 10px 0; color: var(--primary);">${score}/${questions.length}</h1>
-                    <p style="font-weight: 700;">Result Recorded Successfully</p>
-                </div>
-                <button class="btn-primary" onclick="location.href='leaderboard.html'">View Global Leaderboard</button>
+                <h2 style="text-align:center">Assessment Complete</h2>
+                <h1 style="text-align:center; color:var(--primary); font-size: 64px; margin: 10px 0;">${score}/${questions.length}</h1>
+                <button class="btn-primary" onclick="location.href='leaderboard.html'">View Leaderboard</button>
             `;
         }
     </script>
