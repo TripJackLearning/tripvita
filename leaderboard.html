@@ -6,50 +6,42 @@
     <title>TripVita | The 20/20 Club</title>
     <style>
         :root { --primary: #EF7F1A; --gold: #D4AF37; --dark: #1A1A1A; --bg: #fdfcfb; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 500px; background: white; border-radius: 24px; box-shadow: 0 15px 40px rgba(0,0,0,0.08); padding: 40px; box-sizing: border-box; border-top: 8px solid var(--primary); }
-        h2 { text-align: center; color: var(--dark); margin-bottom: 5px; font-size: 24px; }
-        p.subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 30px; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 500px; background: white; border-radius: 24px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); padding: 40px; box-sizing: border-box; border-top: 8px solid var(--primary); }
+        h2 { text-align: center; color: var(--dark); margin-bottom: 5px; font-size: 26px; font-weight: 800; }
+        p.subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 30px; font-weight: 500; }
         .leaderboard-list { display: flex; flex-direction: column; gap: 12px; }
-        .item { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 15px 20px; 
-            background: #fff; 
-            border: 1px solid #eee; 
-            border-radius: 16px;
-        }
-        .rank { font-weight: 800; width: 40px; color: var(--gold); font-size: 18px; }
-        .info { flex-grow: 1; }
+        .item { display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; background: #fff; border: 1px solid #eee; border-radius: 18px; transition: 0.2s; }
+        .item:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .rank { font-weight: 800; width: 45px; color: var(--gold); font-size: 20px; }
         .name { font-weight: 700; color: var(--dark); font-size: 16px; text-transform: capitalize; }
-        .region { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px; }
+        .region { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
         .stats { text-align: right; }
-        .score-badge { background: #fff0e0; color: var(--primary); padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 14px; display: inline-block; }
-        .time { font-size: 11px; color: #aaa; margin-top: 4px; display: block; }
-        .btn { margin-top: 30px; width: 100%; padding: 18px; border-radius: 14px; border: none; background: var(--dark); color: white; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        .score-badge { background: #fff0e0; color: var(--primary); padding: 5px 12px; border-radius: 10px; font-weight: 800; font-size: 14px; display: inline-block; }
+        .time { font-size: 12px; color: #aaa; margin-top: 6px; display: block; font-weight: 600; }
+        .btn { margin-top: 35px; width: 100%; padding: 18px; border-radius: 14px; border: none; background: var(--dark); color: white; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .btn:hover { background: #333; }
-        .empty-msg { text-align: center; color: #999; padding: 20px; font-style: italic; }
+        .empty-state { text-align: center; color: #bbb; padding: 40px 0; font-style: italic; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div style="text-align: center; margin-bottom: 15px;">
-            <img src="https://lh3.googleusercontent.com/d/19M5OxrVAf2IjgHdOtLNEKTY-soDvqowE" style="width: 130px;">
+            <img src="https://via.placeholder.com/150x50?text=TRIPVITA" alt="Logo" style="max-width: 150px;">
         </div>
-        <h2>The 20/20 Excellence Club</h2>
-        <p class="subtitle">Only perfect scores are displayed here</p>
+        <h2>The 20/20 Club</h2>
+        <p class="subtitle">Showcasing only the perfect achievers</p>
         
         <div id="leaderboard-list" class="leaderboard-list">
-            <p style="text-align: center; color: #999;">Fetching Champions...</p>
+            <p style="text-align: center; color: #999;">Verifying scores...</p>
         </div>
 
-        <button class="btn" onclick="location.href='index.html'">Back to Assessment</button>
+        <button class="btn" onclick="location.href='index.html'">Back to Quiz</button>
     </div>
 
     <script>
-        // REPLACE WITH YOUR ACTUAL DEPLOYED URL
+        // PASTE YOUR NEW DEPLOYMENT URL HERE
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxw502wHW183rThM9gNGnmCW9JMKNkR0deIGzC4Vocy1A2wtJWsW5REnHFmUqJ6lsTZ/exec';
 
         async function loadLeaderboard() {
@@ -59,35 +51,36 @@
                 const list = document.getElementById('leaderboard-list');
                 list.innerHTML = '';
 
-                if (data.length === 0) {
-                    list.innerHTML = '<div class="empty-msg">No perfect scores yet. Will you be the first?</div>';
+                // If no perfect scores found
+                if (!data || data.length === 0) {
+                    list.innerHTML = '<div class="empty-state">No perfect scores yet. Be the first to join the club!</div>';
                     return;
                 }
 
                 data.forEach((user, i) => {
                     const row = document.createElement('div');
-                    row.className = `item`;
+                    row.className = 'item';
                     
-                    let rankIcon = i + 1;
-                    if(i === 0) rankIcon = '🥇';
-                    if(i === 1) rankIcon = '🥈';
-                    if(i === 2) rankIcon = '🥉';
+                    let rankDisplay = i + 1;
+                    if(i === 0) rankDisplay = '🥇';
+                    if(i === 1) rankDisplay = '🥈';
+                    if(i === 2) rankDisplay = '🥉';
 
                     row.innerHTML = `
-                        <div class="rank">${rankIcon}</div>
-                        <div class="info">
+                        <div class="rank">${rankDisplay}</div>
+                        <div style="flex-grow:1">
                             <div class="name">${user.name.toLowerCase()}</div>
                             <div class="region">${user.region}</div>
                         </div>
                         <div class="stats">
-                            <div class="score-badge">20/20</div>
+                            <div class="score-badge">Perfect 20</div>
                             <span class="time">⏱ ${user.formattedTime}</span>
                         </div>
                     `;
                     list.appendChild(row);
                 });
             } catch (e) {
-                document.getElementById('leaderboard-list').innerHTML = '<p style="color:red; text-align:center;">Connection Error.</p>';
+                document.getElementById('leaderboard-list').innerHTML = '<p style="color:red; text-align:center;">Failed to connect to leaderboard.</p>';
             }
         }
 
