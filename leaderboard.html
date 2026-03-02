@@ -3,56 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TripVita | Master Leaderboard</title>
+    <title>TripVita | The 20/20 Club</title>
     <style>
-        :root { --primary: #EF7F1A; --dark: #1A1A1A; --bg: #f4f4f9; }
+        :root { --primary: #EF7F1A; --gold: #D4AF37; --dark: #1A1A1A; --bg: #fdfcfb; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 600px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); padding: 30px; box-sizing: border-box; }
-        h2 { text-align: center; color: var(--dark); margin-bottom: 5px; }
-        p.subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 25px; }
-        .leaderboard-list { display: flex; flex-direction: column; gap: 10px; }
+        .container { width: 100%; max-width: 500px; background: white; border-radius: 24px; box-shadow: 0 15px 40px rgba(0,0,0,0.08); padding: 40px; box-sizing: border-box; border-top: 8px solid var(--primary); }
+        h2 { text-align: center; color: var(--dark); margin-bottom: 5px; font-size: 24px; }
+        p.subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 30px; }
+        .leaderboard-list { display: flex; flex-direction: column; gap: 12px; }
         .item { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            padding: 12px 15px; 
+            padding: 15px 20px; 
             background: #fff; 
             border: 1px solid #eee; 
-            border-radius: 12px;
+            border-radius: 16px;
         }
-        .rank { font-weight: 800; width: 40px; color: #888; font-size: 14px; }
+        .rank { font-weight: 800; width: 40px; color: var(--gold); font-size: 18px; }
         .info { flex-grow: 1; }
-        .name { font-weight: 700; color: var(--dark); font-size: 15px; }
-        .region { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }
+        .name { font-weight: 700; color: var(--dark); font-size: 16px; text-transform: capitalize; }
+        .region { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px; }
         .stats { text-align: right; }
-        .score { font-weight: 800; color: var(--primary); font-size: 16px; }
-        .time { font-size: 10px; color: #bbb; }
-        
-        /* Top 3 Highlighting */
-        .item-0 { border-color: #ffd700; background: #fffdf0; }
-        .item-1 { border-color: #c0c0c0; background: #f9f9f9; }
-        .item-2 { border-color: #cd7f32; background: #fffaf5; }
-        
-        .btn { margin-top: 25px; width: 100%; padding: 15px; border-radius: 12px; border: none; background: var(--dark); color: white; cursor: pointer; font-weight: bold; font-size: 16px; }
+        .score-badge { background: #fff0e0; color: var(--primary); padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 14px; display: inline-block; }
+        .time { font-size: 11px; color: #aaa; margin-top: 4px; display: block; }
+        .btn { margin-top: 30px; width: 100%; padding: 18px; border-radius: 14px; border: none; background: var(--dark); color: white; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        .btn:hover { background: #333; }
+        .empty-msg { text-align: center; color: #999; padding: 20px; font-style: italic; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div style="text-align: center; margin-bottom: 10px;">
-            <img src="https://lh3.googleusercontent.com/d/19M5OxrVAf2IjgHdOtLNEKTY-soDvqowE" style="width: 120px;">
+        <div style="text-align: center; margin-bottom: 15px;">
+            <img src="https://lh3.googleusercontent.com/d/19M5OxrVAf2IjgHdOtLNEKTY-soDvqowE" style="width: 130px;">
         </div>
-        <h2>Sales Masterboard</h2>
-        <p class="subtitle">Ranked by Score & Speed</p>
+        <h2>The 20/20 Excellence Club</h2>
+        <p class="subtitle">Only perfect scores are displayed here</p>
         
         <div id="leaderboard-list" class="leaderboard-list">
-            <p style="text-align: center; color: #999;">Loading all candidates...</p>
+            <p style="text-align: center; color: #999;">Fetching Champions...</p>
         </div>
 
-        <button class="btn" onclick="location.href='index.html'">Take Quiz Again</button>
+        <button class="btn" onclick="location.href='index.html'">Back to Assessment</button>
     </div>
 
     <script>
+        // REPLACE WITH YOUR ACTUAL DEPLOYED URL
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxw502wHW183rThM9gNGnmCW9JMKNkR0deIGzC4Vocy1A2wtJWsW5REnHFmUqJ6lsTZ/exec';
 
         async function loadLeaderboard() {
@@ -62,9 +59,14 @@
                 const list = document.getElementById('leaderboard-list');
                 list.innerHTML = '';
 
+                if (data.length === 0) {
+                    list.innerHTML = '<div class="empty-msg">No perfect scores yet. Will you be the first?</div>';
+                    return;
+                }
+
                 data.forEach((user, i) => {
                     const row = document.createElement('div');
-                    row.className = `item item-${i}`;
+                    row.className = `item`;
                     
                     let rankIcon = i + 1;
                     if(i === 0) rankIcon = '🥇';
@@ -74,18 +76,18 @@
                     row.innerHTML = `
                         <div class="rank">${rankIcon}</div>
                         <div class="info">
-                            <div class="name">${user.name}</div>
+                            <div class="name">${user.name.toLowerCase()}</div>
                             <div class="region">${user.region}</div>
                         </div>
                         <div class="stats">
-                            <div class="score">${user.score}/20</div>
-                            <div class="time">${user.formattedTime}</div>
+                            <div class="score-badge">20/20</div>
+                            <span class="time">⏱ ${user.formattedTime}</span>
                         </div>
                     `;
                     list.appendChild(row);
                 });
             } catch (e) {
-                document.getElementById('leaderboard-list').innerHTML = '<p style="color:red; text-align:center;">Error loading leaderboard.</p>';
+                document.getElementById('leaderboard-list').innerHTML = '<p style="color:red; text-align:center;">Connection Error.</p>';
             }
         }
 
