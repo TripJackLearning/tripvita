@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TripVita March Quiz</title>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@500;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --orange: #EF7F1A;
@@ -43,7 +43,6 @@
             position: relative;
             overflow: hidden;
         }
-
         .card-header::before {
             content: '';
             position: absolute;
@@ -53,7 +52,6 @@
             background: var(--orange);
             opacity: 0.15;
         }
-
         .card-header::after {
             content: '';
             position: absolute;
@@ -73,7 +71,6 @@
             color: var(--orange);
             margin-bottom: 8px;
         }
-
         .card-header h1 {
             font-family: 'Syne', sans-serif;
             font-size: 26px;
@@ -81,7 +78,6 @@
             color: var(--white);
             line-height: 1.2;
         }
-
         .card-header p {
             font-size: 13px;
             color: rgba(255,255,255,0.5);
@@ -90,7 +86,7 @@
 
         .card-body { padding: 32px; }
 
-        /* --- Registration --- */
+        /* Registration */
         .field { margin-bottom: 16px; }
         .field label {
             display: block;
@@ -136,22 +132,6 @@
         .btn-primary:active { transform: scale(0.99); }
         .btn-primary:disabled { background: #ddd; color: #aaa; cursor: not-allowed; }
 
-        .btn-dark {
-            width: 100%;
-            padding: 16px;
-            background: var(--dark);
-            color: var(--white);
-            border: none;
-            border-radius: var(--radius);
-            font-family: 'Syne', sans-serif;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 12px;
-            transition: opacity 0.2s;
-        }
-        .btn-dark:hover { opacity: 0.85; }
-
         #msg {
             text-align: center;
             font-size: 13px;
@@ -160,12 +140,12 @@
             min-height: 18px;
         }
 
-        /* --- Quiz Screen --- */
+        /* Quiz Screen */
         .progress-bar-wrap {
             background: #f0f0f0;
             border-radius: 99px;
             height: 6px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             overflow: hidden;
         }
         .progress-bar-fill {
@@ -175,11 +155,44 @@
             transition: width 0.4s ease;
         }
 
+        /* Big countdown timer */
+        .timer-wrap {
+            background: var(--soft);
+            border-radius: 20px;
+            padding: 16px 0 12px;
+            text-align: center;
+            margin-bottom: 22px;
+            border: 2px solid transparent;
+            transition: border-color 0.3s, background 0.3s;
+        }
+        .timer-wrap.warning {
+            background: #fff5f5;
+            border-color: #fca5a5;
+        }
+        #timer {
+            font-family: 'DM Mono', monospace;
+            font-size: 58px;
+            font-weight: 600;
+            color: var(--dark);
+            letter-spacing: 2px;
+            line-height: 1;
+            transition: color 0.3s;
+        }
+        .timer-wrap.warning #timer { color: #e53935; }
+        .timer-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: #aaa;
+            margin-top: 6px;
+        }
+
         .q-meta {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
         .q-counter {
             font-size: 12px;
@@ -187,28 +200,19 @@
             color: var(--mid);
             letter-spacing: 0.5px;
         }
-        #timer {
-            font-family: 'Syne', sans-serif;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--orange);
-            background: var(--orange-light);
-            padding: 5px 12px;
-            border-radius: 99px;
-        }
 
         #qText {
             font-family: 'Syne', sans-serif;
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 700;
             color: var(--dark);
-            line-height: 1.45;
-            margin-bottom: 24px;
+            line-height: 1.5;
+            margin-bottom: 20px;
         }
 
         .opt {
             width: 100%;
-            padding: 15px 18px;
+            padding: 14px 18px;
             margin-bottom: 10px;
             background: var(--soft);
             border: 1.5px solid transparent;
@@ -226,8 +230,7 @@
         .opt:hover { background: var(--orange-light); border-color: var(--orange); }
         .opt:active { transform: scale(0.99); }
         .opt.correct { background: #e8f5e9; border-color: #4CAF50; }
-        .opt.wrong { background: #fdecea; border-color: #e53935; }
-        .opt:disabled { cursor: not-allowed; opacity: 0.7; }
+        .opt.wrong   { background: #fdecea; border-color: #e53935; }
 
         .opt-letter {
             width: 28px; height: 28px;
@@ -238,19 +241,20 @@
             flex-shrink: 0;
         }
 
-        /* Feedback popup */
         .feedback-box {
-            margin-top: 16px;
-            padding: 16px 18px;
+            margin-top: 14px;
+            padding: 14px 16px;
             border-radius: var(--radius);
             font-size: 13px;
             line-height: 1.6;
             display: none;
         }
-        .feedback-box.correct { background: #e8f5e9; border-left: 4px solid #4CAF50; color: #2e7d32; }
-        .feedback-box.wrong { background: #fdecea; border-left: 4px solid #e53935; color: #b71c1c; }
+        .feedback-box.correct { background: #e8f5e9; border-left: 4px solid #4CAF50; }
+        .feedback-box.wrong   { background: #fdecea; border-left: 4px solid #e53935; }
         .feedback-box .fb-title { font-weight: 700; margin-bottom: 4px; font-size: 14px; }
-        .feedback-box .explanation { color: #444; margin-top: 6px; font-size: 13px; }
+        .feedback-box.correct .fb-title { color: #2e7d32; }
+        .feedback-box.wrong .fb-title   { color: #b71c1c; }
+        .feedback-box .explanation { color: #444; font-size: 13px; }
 
         .btn-next {
             width: 100%;
@@ -263,13 +267,13 @@
             font-size: 15px;
             font-weight: 700;
             cursor: pointer;
-            margin-top: 16px;
+            margin-top: 14px;
             display: none;
             transition: opacity 0.2s;
         }
         .btn-next:hover { opacity: 0.85; }
 
-        /* --- End Screen --- */
+        /* End Screen */
         .score-ring {
             width: 140px; height: 140px;
             border-radius: 50%;
@@ -280,18 +284,18 @@
             margin: 0 auto 24px;
         }
         .score-ring .score-num {
-            font-family: 'Syne', sans-serif;
-            font-size: 36px;
-            font-weight: 800;
+            font-family: 'DM Mono', monospace;
+            font-size: 40px;
+            font-weight: 600;
             color: var(--orange);
             line-height: 1;
         }
         .score-ring .score-denom {
-            font-size: 13px;
+            font-family: 'DM Mono', monospace;
+            font-size: 14px;
             color: var(--mid);
             margin-top: 2px;
         }
-
         .end-title {
             font-family: 'Syne', sans-serif;
             font-size: 22px;
@@ -306,7 +310,6 @@
             font-size: 13px;
             margin-bottom: 28px;
         }
-
         #saveMsg {
             text-align: center;
             font-size: 13px;
@@ -318,9 +321,15 @@
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            to   { opacity: 1; transform: translateY(0); }
         }
         .animate-in { animation: fadeIn 0.3s ease forwards; }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50%       { transform: scale(1.04); }
+        }
+        .timer-wrap.warning { animation: pulse 1s ease infinite; }
     </style>
 </head>
 <body>
@@ -366,12 +375,19 @@
         <div class="progress-bar-wrap">
             <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
         </div>
+
+        <div class="timer-wrap" id="timerWrap">
+            <div id="timer">06:00</div>
+            <div class="timer-label">Time Remaining</div>
+        </div>
+
         <div class="q-meta">
             <span class="q-counter" id="qCounter">Question 1</span>
-            <span id="timer">⏱ 00:00</span>
         </div>
+
         <div id="qText"></div>
         <div id="optBox"></div>
+
         <div class="feedback-box" id="feedbackBox">
             <div class="fb-title" id="fbTitle"></div>
             <div class="explanation" id="fbExplain"></div>
@@ -393,14 +409,18 @@
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx1krnNrVEuQITS0fMcsGzwcZIt0d1Q2YH57AD1RYoWNuWbdzQ1SMT_X4eU0uroX396/exec";
+    const SCRIPT_URL   = "https://script.google.com/macros/s/AKfycbx1krnNrVEuQITS0fMcsGzwcZIt0d1Q2YH57AD1RYoWNuWbdzQ1SMT_X4eU0uroX396/exec";
+    const TOTAL_SECONDS = 360; // 6:00
 
-    let qs = [], cur = 0, score = 0, sec = 0, timerInterval;
+    let qs = [], cur = 0, score = 0;
+    let secondsLeft   = TOTAL_SECONDS;
+    let timerInterval = null;
+    let quizFinished  = false;
 
     async function handleStart() {
-        const name = document.getElementById('uName').value.trim();
-        const id = document.getElementById('uId').value.trim();
-        const email = document.getElementById('uEmail').value.trim();
+        const name   = document.getElementById('uName').value.trim();
+        const id     = document.getElementById('uId').value.trim();
+        const email  = document.getElementById('uEmail').value.trim();
         const region = document.getElementById('uReg').value;
 
         if (!name || !id || !email || !region) {
@@ -413,7 +433,7 @@
         document.getElementById('msg').innerText = "Validating Employee ID...";
 
         try {
-            const cRes = await fetch(`${SCRIPT_URL}?action=checkDuplicate&empId=${encodeURIComponent(id)}`);
+            const cRes  = await fetch(`${SCRIPT_URL}?action=checkDuplicate&empId=${encodeURIComponent(id)}`);
             const cData = await cRes.json();
             if (cData.exists) {
                 alert("You've already submitted this quiz!");
@@ -428,7 +448,7 @@
 
             document.getElementById('reg-screen').classList.add('hidden');
             document.getElementById('quiz-screen').classList.remove('hidden');
-            startTimer();
+            startCountdown();
             renderQ();
         } catch (err) {
             document.getElementById('msg').innerText = "Connection error. Please try again.";
@@ -436,21 +456,43 @@
         }
     }
 
+    function startCountdown() {
+        secondsLeft = TOTAL_SECONDS;
+        updateTimerDisplay();
+        timerInterval = setInterval(() => {
+            secondsLeft--;
+            updateTimerDisplay();
+            if (secondsLeft <= 30) {
+                document.getElementById('timerWrap').classList.add('warning');
+            }
+            if (secondsLeft <= 0) {
+                clearInterval(timerInterval);
+                if (!quizFinished) finish(true);
+            }
+        }, 1000);
+    }
+
+    function updateTimerDisplay() {
+        const m = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
+        const s = (secondsLeft % 60).toString().padStart(2, '0');
+        document.getElementById('timer').innerText = `${m}:${s}`;
+    }
+
     function renderQ() {
-        const q = qs[cur];
-        const total = qs.length;
+        const q       = qs[cur];
+        const total   = qs.length;
         const letters = ['A', 'B', 'C', 'D'];
 
         document.getElementById('progressBar').style.width = `${(cur / total) * 100}%`;
-        document.getElementById('qCounter').innerText = `Question ${cur + 1} of ${total}`;
-        document.getElementById('qText').innerText = q.question;
+        document.getElementById('qCounter').innerText      = `Question ${cur + 1} of ${total}`;
+        document.getElementById('qText').innerText         = q.question;
 
         const box = document.getElementById('optBox');
         box.innerHTML = "";
 
         const fb = document.getElementById('feedbackBox');
         fb.style.display = 'none';
-        fb.className = 'feedback-box';
+        fb.className     = 'feedback-box';
 
         document.getElementById('nextBtn').style.display = 'none';
 
@@ -458,18 +500,17 @@
             const btn = document.createElement('button');
             btn.className = 'opt';
             btn.innerHTML = `<span class="opt-letter">${letters[i]}</span>${opt}`;
-            btn.onclick = () => selectAnswer(opt, btn);
+            btn.onclick   = () => selectAnswer(opt, btn);
             box.appendChild(btn);
         });
 
-        // Animate in
         document.getElementById('quiz-screen').classList.remove('animate-in');
         void document.getElementById('quiz-screen').offsetWidth;
         document.getElementById('quiz-screen').classList.add('animate-in');
     }
 
     function selectAnswer(chosen, clickedBtn) {
-        const q = qs[cur];
+        const q       = qs[cur];
         const correct = q.answer;
         const allOpts = document.querySelectorAll('.opt');
 
@@ -493,67 +534,62 @@
     }
 
     function showFeedback(isCorrect, explanation, correct) {
-        const fb = document.getElementById('feedbackBox');
-        const title = document.getElementById('fbTitle');
+        const fb      = document.getElementById('feedbackBox');
+        const title   = document.getElementById('fbTitle');
         const explain = document.getElementById('fbExplain');
 
-        fb.className = 'feedback-box ' + (isCorrect ? 'correct' : 'wrong');
-        title.innerText = isCorrect ? '✅ Correct!' : `❌ Incorrect — Correct answer: ${correct}`;
+        fb.className      = 'feedback-box ' + (isCorrect ? 'correct' : 'wrong');
+        title.innerText   = isCorrect ? '✅ Correct!' : `❌ Incorrect — Correct answer: ${correct}`;
         explain.innerText = explanation || '';
-        fb.style.display = 'block';
+        fb.style.display  = 'block';
     }
 
     function nextQuestion() {
         cur++;
-        if (cur < qs.length) {
-            renderQ();
-        } else {
-            finish();
-        }
+        if (cur < qs.length) renderQ();
+        else finish(false);
     }
 
-    function startTimer() {
-        timerInterval = setInterval(() => {
-            sec++;
-            const m = Math.floor(sec / 60).toString().padStart(2, '0');
-            const s = (sec % 60).toString().padStart(2, '0');
-            document.getElementById('timer').innerText = `⏱ ${m}:${s}`;
-        }, 1000);
-    }
-
-    async function finish() {
+    async function finish(timeUp = false) {
+        if (quizFinished) return;
+        quizFinished = true;
         clearInterval(timerInterval);
-        document.getElementById('quiz-screen').classList.add('hidden');
 
+        document.getElementById('quiz-screen').classList.add('hidden');
         const end = document.getElementById('end-screen');
         end.classList.remove('hidden');
         end.classList.add('animate-in');
 
-        const total = qs.length;
-        const pct = Math.round((score / total) * 100);
+        const total       = qs.length;
+        const timeTaken   = TOTAL_SECONDS - secondsLeft;
+        const pct         = Math.round((score / total) * 100);
+        const mm          = Math.floor(timeTaken / 60).toString().padStart(2, '0');
+        const ss          = (timeTaken % 60).toString().padStart(2, '0');
+        const timeFormatted = `${mm}:${ss}`;
 
-        document.getElementById('scoreNum').innerText = score;
+        document.getElementById('scoreNum').innerText   = score;
         document.getElementById('scoreDenom').innerText = `/ ${total}`;
 
-        let title = 'Quiz Complete!';
-        let sub = 'Great effort. Your results have been saved.';
-        if (score === total) { title = '🏆 Perfect Score!'; sub = "You nailed every question. Welcome to the 15/15 Club!"; }
-        else if (pct >= 80) { title = '🎉 Excellent Work!'; sub = `${pct}% — You're among the top scorers!`; }
-        else if (pct >= 60) { title = '👍 Good Job!'; sub = `${pct}% — Keep learning and try again next month.`; }
-        else { title = '📚 Keep Practising!'; sub = `${pct}% — Review the material and come back stronger.`; }
+        let title = timeUp ? "⏰ Time's Up!" : 'Quiz Complete!';
+        let sub   = timeUp ? `You answered ${score} of ${total} before time ran out.` : 'Your results have been saved.';
+        if (!timeUp) {
+            if (score === total) { title = '🏆 Perfect Score!';   sub = "You nailed every question!"; }
+            else if (pct >= 80)  { title = '🎉 Excellent Work!';  sub = `${pct}% — You're among the top scorers!`; }
+            else if (pct >= 60)  { title = '👍 Good Job!';         sub = `${pct}% — Keep learning!`; }
+            else                  { title = '📚 Keep Practising!'; sub = `${pct}% — Come back stronger next month.`; }
+        }
 
         document.getElementById('endTitle').innerText = title;
-        document.getElementById('endSub').innerText = sub;
+        document.getElementById('endSub').innerText   = sub;
 
-        const timeFormatted = document.getElementById('timer').innerText.replace('⏱ ', '');
         const payload = {
-            name: document.getElementById('uName').value,
-            empId: document.getElementById('uId').value,
-            email: document.getElementById('uEmail').value,
-            region: document.getElementById('uReg').value,
+            name:             document.getElementById('uName').value,
+            empId:            document.getElementById('uId').value,
+            email:            document.getElementById('uEmail').value,
+            region:           document.getElementById('uReg').value,
             score,
-            totalQuestions: total,
-            timeTakenSeconds: sec,
+            totalQuestions:   total,
+            timeTakenSeconds: timeTaken,
             timeFormatted
         };
 
