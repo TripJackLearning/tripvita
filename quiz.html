@@ -1,135 +1,134 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>TripVita March</title>
+    <title>TripVita March Quiz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; text-align: center; }
-        .card { background: white; max-width: 500px; margin: auto; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        input, select { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
-        .btn { background: #EF7F1A; color: white; border: none; padding: 15px 30px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: #fdfcfb; display: flex; justify-content: center; }
+        .container { background: white; width: 100%; max-width: 500px; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 8px solid #EF7F1A; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; background: #1a1a1a; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .btn:disabled { background: #ccc; }
         .hidden { display: none; }
-        .option { display: block; width: 100%; padding: 10px; margin: 5px 0; background: #eee; border: none; text-align: left; cursor: pointer; border-radius: 5px; }
+        .opt { width: 100%; padding: 15px; margin: 10px 0; background: #f8f8f8; border: 1px solid #eee; text-align: left; border-radius: 10px; cursor: pointer; }
+        #timer { text-align: right; font-weight: bold; color: #EF7F1A; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-<div class="card" id="reg-box">
-    <h2>TripVita March Quiz</h2>
-    <input type="text" id="name" placeholder="Full Name">
-    <input type="text" id="eid" placeholder="Employee ID">
-    <input type="text" id="email" placeholder="Email">
-    <select id="reg">
-        <option value="">Select Region</option>
-        <option value="North">North</option><option value="South">South</option><option value="West">West</option><option value="OBJ">OBJ</option>
-    </select>
-    <button class="btn" id="startBtn" onclick="initiateQuiz()">START QUIZ</button>
-    <p id="status"></p>
-</div>
+<div class="container">
+    <div id="reg-screen">
+        <h2 style="text-align:center">TripVita March</h2>
+        <input type="text" id="uName" placeholder="Full Name">
+        <input type="text" id="uId" placeholder="Employee ID">
+        <input type="email" id="uEmail" placeholder="Email">
+        <select id="uReg"><option value="">Select Region</option><option value="North">North</option><option value="South">South</option><option value="West">West</option><option value="OBJ">OBJ</option></select>
+        <button class="btn" id="sBtn" onclick="handleStart()">Start Quiz</button>
+        <p id="msg" style="text-align:center; font-size:13px; color: #666;"></p>
+    </div>
 
-<div class="card hidden" id="quiz-box">
-    <div id="timer" style="font-weight:bold; color:red; margin-bottom:10px;">06:00</div>
-    <h3 id="q-text"></h3>
-    <div id="options"></div>
-</div>
+    <div id="quiz-screen" class="hidden">
+        <div id="timer">Time Spent: 00:00</div>
+        <h3 id="qText"></h3>
+        <div id="optBox"></div>
+    </div>
 
-<div class="card hidden" id="result-box">
-    <h2>Finished!</h2>
-    <h1 id="score-display"></h1>
-    <button class="btn" onclick="location.reload()">Take Again</button>
+    <div id="end-screen" class="hidden" style="text-align:center">
+        <h2>Complete!</h2>
+        <h1 id="fScore" style="color:#EF7F1A; font-size: 50px;"></h1>
+        <p id="saveMsg">Saving results...</p>
+        <button class="btn" onclick="location.href='leaderboard.html'">View Leaderboard</button>
+    </div>
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzuy4EggXaRkdnZK3M8I2CEWTWY6mhvxQyt5oWF2AVFtLS7nNHaMhVX678v7Qr-t5ih/exec"; 
-    
-    let questions = [];
-    let current = 0;
-    let score = 0;
-    let seconds = 0;
+    // PASTE YOUR NEW /exec URL HERE
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2xRHKxn1U3YQNOIi8BOwVQNHSisfD-j57rUZvwMmEW0BkNoVgNEswsNqbAj9j0i2q/exec";
 
-    function initiateQuiz() {
-        const eid = document.getElementById('eid').value;
-        const name = document.getElementById('name').value;
-        if(!eid || !name) return alert("Fill Name and ID");
+    let qs = [], cur = 0, score = 0, sec = 0, timer;
 
-        document.getElementById('startBtn').disabled = true;
-        document.getElementById('status').innerText = "Checking ID...";
+    async function handleStart() {
+        const id = document.getElementById('uId').value.trim();
+        const name = document.getElementById('uName').value.trim();
+        if(!id || !name) return alert("Please enter Name and Employee ID");
 
-        // Step 1: Check Duplicate
-        fetch(`${SCRIPT_URL}?action=checkDuplicate&empId=${eid}`)
-            .then(res => res.json())
-            .then(data => {
-                if(data.exists) {
-                    alert("This ID has already submitted!");
-                    document.getElementById('startBtn').disabled = false;
-                } else {
-                    loadQuestions();
-                }
-            })
-            .catch(err => {
-                alert("Connection Error: " + err);
-                document.getElementById('startBtn').disabled = false;
-            });
+        document.getElementById('sBtn').disabled = true;
+        document.getElementById('msg').innerText = "Validating Employee ID...";
+
+        try {
+            // Check Duplicate
+            const cRes = await fetch(`${SCRIPT_URL}?action=checkDuplicate&empId=${encodeURIComponent(id)}`);
+            const cData = await cRes.json();
+
+            if (cData.exists) {
+                alert("You have already submitted the quiz!");
+                document.getElementById('sBtn').disabled = false;
+                document.getElementById('msg').innerText = "";
+                return;
+            }
+
+            // Get Questions
+            document.getElementById('msg').innerText = "Loading Questions...";
+            const qRes = await fetch(`${SCRIPT_URL}?action=getQuestions`);
+            qs = await qRes.json();
+
+            document.getElementById('reg-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            startTimer();
+            renderQ();
+        } catch (e) {
+            alert("Connection Error. Please check your internet and SCRIPT_URL.");
+            document.getElementById('sBtn').disabled = false;
+        }
     }
 
-    function loadQuestions() {
-        document.getElementById('status').innerText = "Loading Questions...";
-        fetch(`${SCRIPT_URL}?action=getQuestions`)
-            .then(res => res.json())
-            .then(data => {
-                questions = data;
-                document.getElementById('reg-box').classList.add('hidden');
-                document.getElementById('quiz-box').classList.remove('hidden');
-                showQ();
-                startTimer();
-            });
-    }
-
-    function showQ() {
-        const q = questions[current];
-        document.getElementById('q-text').innerText = (current + 1) + ". " + q.question;
-        const optDiv = document.getElementById('options');
-        optDiv.innerHTML = "";
-        q.options.forEach(opt => {
+    function renderQ() {
+        const q = qs[cur];
+        document.getElementById('qText').innerText = (cur+1) + ". " + q.question;
+        const box = document.getElementById('optBox');
+        box.innerHTML = "";
+        q.options.forEach(o => {
             const b = document.createElement('button');
-            b.className = "option";
-            b.innerText = opt;
-            b.onclick = () => checkAns(opt, q.answer, q.explanation);
-            optDiv.appendChild(b);
+            b.className = "opt"; b.innerText = o;
+            b.onclick = () => {
+                if(o === q.answer) score++;
+                alert((o === q.answer ? "✅ Correct!" : "❌ Wrong! Correct: " + q.answer) + "\n\n" + q.explanation);
+                cur++;
+                if(cur < qs.length) renderQ(); else finish();
+            };
+            box.appendChild(b);
         });
-    }
-
-    function checkAns(selected, correct, exp) {
-        if(selected === correct) score++;
-        alert((selected === correct ? "Correct!" : "Wrong! Correct was: " + correct) + "\n\n" + exp);
-        current++;
-        if(current < questions.length) showQ(); else end();
     }
 
     function startTimer() {
-        setInterval(() => { seconds++; }, 1000);
+        timer = setInterval(() => {
+            sec++;
+            let m = Math.floor(sec/60).toString().padStart(2,'0');
+            let s = (sec%60).toString().padStart(2,'0');
+            document.getElementById('timer').innerText = `Time Spent: ${m}:${s}`;
+        }, 1000);
     }
 
-    function end() {
-        document.getElementById('quiz-box').classList.add('hidden');
-        document.getElementById('result-box').classList.remove('hidden');
-        document.getElementById('score-display').innerText = score + " / " + questions.length;
-        
-        fetch(SCRIPT_URL, {
-            method: "POST",
-            mode: "no-cors",
-            body: JSON.stringify({
-                name: document.getElementById('name').value,
-                empId: document.getElementById('eid').value,
-                email: document.getElementById('email').value,
-                region: document.getElementById('reg').value,
-                score: score,
-                totalQuestions: questions.length,
-                timeTakenSeconds: seconds,
-                timeFormatted: Math.floor(seconds/60) + ":" + (seconds%60)
-            })
-        });
+    async function finish() {
+        clearInterval(timer);
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('end-screen').classList.remove('hidden');
+        document.getElementById('fScore').innerText = `${score} / ${qs.length}`;
+
+        const payload = {
+            name: document.getElementById('uName').value,
+            empId: document.getElementById('uId').value,
+            email: document.getElementById('uEmail').value,
+            region: document.getElementById('uReg').value,
+            score: score,
+            totalQuestions: qs.length,
+            timeTakenSeconds: sec,
+            timeFormatted: document.getElementById('timer').innerText.replace("Time Spent: ","")
+        };
+
+        await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
+        document.getElementById('saveMsg').innerText = "Results saved successfully!";
     }
 </script>
-
 </body>
 </html>
