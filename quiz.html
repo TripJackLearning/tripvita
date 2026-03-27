@@ -1,176 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TripVita March 2026 | Sales Quiz</title>
-    <style>
-        :root { --primary: #EF7F1A; --dark: #1A1A1A; --success: #28a745; --error: #dc3545; --bg: #fdfcfb; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 600px; background: white; border-radius: 24px; shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 30px; box-sizing: border-box; border-top: 8px solid var(--primary); }
-        .hidden { display: none; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 15px; background: var(--dark); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; }
-        .option-btn { width: 100%; padding: 15px; margin: 8px 0; border: 1px solid #eee; border-radius: 10px; background: white; cursor: pointer; text-align: left; font-size: 15px; transition: 0.2s; }
-        .correct { background-color: #d4edda !important; border-color: var(--success) !important; color: #155724; font-weight: bold; }
-        .wrong { background-color: #f8d7da !important; border-color: var(--error) !important; color: #721c24; }
-        .explanation { padding: 15px; background: #eef7ff; border-radius: 10px; margin-top: 15px; border-left: 5px solid #007bff; font-size: 14px; display: none; }
-        .progress-bar { height: 6px; background: #eee; border-radius: 3px; margin-bottom: 20px; }
-        .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: 0.3s; }
-    </style>
-</head>
-<body>
+// Replace your existing <script> logic with this:
 
-<div class="container">
-    <div id="registration">
-        <h2 style="text-align:center">TripVita March Edition</h2>
-        <p style="text-align:center; color:#666">Enter your details to start the challenge</p>
-        <input type="text" id="userName" placeholder="Full Name" required>
-        <input type="text" id="empId" placeholder="Employee ID" required>
-        <input type="email" id="userEmail" placeholder="Email Address" required>
-        <select id="userRegion">
-            <option value="">Select Region</option>
-            <option value="North">North</option>
-            <option value="South">South</option>
-            <option value="West">West</option>
-            <option value="OBJ">OBJ</option>
-        </select>
-        <button class="btn" onclick="startQuiz()">Start Quiz</button>
-    </div>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2xRHKxn1U3YQNOIi8BOwVQNHSisfD-j57rUZvwMmEW0BkNoVgNEswsNqbAj9j0i2q/exec';
+let timeLeft = 360; // 3. Countdown: 6 minutes (in seconds)
+let totalTimeElapsed = 0;
 
-    <div id="quiz-box" class="hidden">
-        <div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
-        <div id="timer" style="text-align:right; font-weight:bold; color:var(--primary); margin-bottom:10px">00:00</div>
-        <h3 id="question-text">Loading question...</h3>
-        <div id="options-container"></div>
-        <div id="explanation-box" class="explanation"></div>
-        <button id="next-btn" class="btn hidden" onclick="loadNextQuestion()">Next Question</button>
-    </div>
+async function startQuiz() {
+    // ... (Your existing validation) ...
 
-    <div id="results" class="hidden" style="text-align:center">
-        <h2>Quiz Completed!</h2>
-        <div id="final-score" style="font-size: 48px; font-weight: 800; color: var(--primary); margin: 20px 0;">0/15</div>
-        <p id="result-msg">Submitting your score...</p>
-        <button class="btn" onclick="location.href='leaderboard.html'">View Leaderboard</button>
-    </div>
-</div>
+    const resp = await fetch(SCRIPT_URL + '?action=getQuestions');
+    const data = await resp.json();
+    
+    if(data.error) return alert(data.error); // Handlers Quiz Closed
+    questions = data; 
+    
+    document.getElementById('registration').classList.add('hidden');
+    document.getElementById('quiz-box').classList.remove('hidden');
+    
+    startTime = Date.now();
+    runTimers();
+    showQuestion();
+}
 
-<script>
-    // PASTE YOUR NEW APPS SCRIPT WEB APP URL HERE
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2xRHKxn1U3YQNOIi8BOwVQNHSisfD-j57rUZvwMmEW0BkNoVgNEswsNqbAj9j0i2q/exec';
+function runTimers() {
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        totalTimeElapsed++;
 
-    let questions = [];
-    let currentIdx = 0;
-    let score = 0;
-    let startTime;
-    let timerInterval;
-    let userDetails = {};
-    let sessionData = [];
+        // Update display with Countdown
+        let m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+        let s = (timeLeft % 60).toString().padStart(2, '0');
+        document.getElementById('timer').innerText = `Time Left: ${m}:${s}`;
 
-    async function startQuiz() {
-        const name = document.getElementById('userName').value;
-        const empId = document.getElementById('empId').value;
-        const email = document.getElementById('userEmail').value;
-        const region = document.getElementById('userRegion').value;
-
-        if(!name || !empId || !email || !region) return alert("Please fill all fields");
-
-        userDetails = { name, empId, email, region };
-        document.getElementById('registration').classList.add('hidden');
-        document.getElementById('quiz-box').classList.remove('hidden');
-
-        const resp = await fetch(SCRIPT_URL + '?action=getQuestions');
-        questions = await resp.json();
-        
-        startTime = Date.now();
-        startTimer();
-        showQuestion();
-    }
-
-    function startTimer() {
-        timerInterval = setInterval(() => {
-            let diff = Math.floor((Date.now() - startTime) / 1000);
-            let m = Math.floor(diff / 60).toString().padStart(2, '0');
-            let s = (diff % 60).toString().padStart(2, '0');
-            document.getElementById('timer').innerText = `${m}:${s}`;
-        }, 1000);
-    }
-
-    function showQuestion() {
-        const q = questions[currentIdx];
-        document.getElementById('question-text').innerText = `${currentIdx + 1}. ${q.question}`;
-        document.getElementById('progress').style.width = `${((currentIdx) / questions.length) * 100}%`;
-        
-        const container = document.getElementById('options-container');
-        container.innerHTML = '';
-        document.getElementById('explanation-box').classList.add('hidden');
-        document.getElementById('next-btn').classList.add('hidden');
-
-        q.options.forEach(opt => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.innerText = opt;
-            btn.onclick = () => handleAnswer(btn, opt, q.answer, q.explanation);
-            container.appendChild(btn);
-        });
-    }
-
-    function handleAnswer(btn, selected, correct, explanation) {
-        const buttons = document.querySelectorAll('.option-btn');
-        buttons.forEach(b => b.disabled = true);
-
-        const isCorrect = (selected === correct);
-        if(isCorrect) {
-            btn.classList.add('correct');
-            score++;
-        } else {
-            btn.classList.add('wrong');
-            // Show the correct one
-            buttons.forEach(b => { if(b.innerText === correct) b.classList.add('correct'); });
-        }
-
-        const expBox = document.getElementById('explanation-box');
-        expBox.innerHTML = `<strong>Explanation:</strong> ${explanation}`;
-        expBox.style.display = 'block';
-        
-        sessionData.push({ question: questions[currentIdx].question, isCorrect });
-        document.getElementById('next-btn').classList.remove('hidden');
-    }
-
-    function loadNextQuestion() {
-        currentIdx++;
-        if(currentIdx < questions.length) {
-            showQuestion();
-        } else {
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            alert("Time is up!");
             finishQuiz();
         }
-    }
+    }, 1000);
+}
 
-    async function finishQuiz() {
-        clearInterval(timerInterval);
-        document.getElementById('quiz-box').classList.add('hidden');
-        document.getElementById('results').classList.remove('hidden');
-        document.getElementById('final-score').innerText = `${score}/${questions.length}`;
+async function finishQuiz() {
+    clearInterval(timerInterval);
+    document.getElementById('quiz-box').classList.add('hidden');
+    document.getElementById('results').classList.remove('hidden');
+    
+    // 5. Dynamic score display (e.g., 12/15 or 12/20)
+    document.getElementById('final-score').innerText = `${score} / ${questions.length}`;
 
-        const timeTaken = Math.floor((Date.now() - startTime) / 1000);
-        const m = Math.floor(timeTaken / 60).toString().padStart(2, '0');
-        const s = (timeTaken % 60).toString().padStart(2, '0');
+    const m = Math.floor(totalTimeElapsed / 60).toString().padStart(2, '0');
+    const s = (totalTimeElapsed % 60).toString().padStart(2, '0');
 
-        const payload = {
-            ...userDetails,
-            score: score,
-            timeTakenSeconds: timeTaken,
-            timeFormatted: `${m}:${s}`,
-            details: sessionData
-        };
+    const payload = {
+        ...userDetails,
+        score: score,
+        totalQuestions: questions.length, // Dynamic total
+        timeTakenSeconds: totalTimeElapsed,
+        timeFormatted: `${m}:${s}`
+    };
 
-        await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        });
+    const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+    const resultText = await response.text();
 
+    if(resultText === "DUPLICATE") {
+        document.getElementById('result-msg').innerHTML = "<span style='color:red'>Error: This Employee ID has already submitted.</span>";
+    } else {
         document.getElementById('result-msg').innerText = "Result saved successfully!";
     }
-</script>
-</body>
-</html>
+}
