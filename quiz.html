@@ -9,8 +9,10 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
         .container { width: 100%; max-width: 600px; background: white; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 30px; box-sizing: border-box; border-top: 8px solid var(--primary); }
         .hidden { display: none; }
-        input, select { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
-        .btn { width: 100%; padding: 16px; background: var(--dark); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; transition: background 0.3s; }
+        input, select { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 15px; outline: none; }
+        input:focus { border-color: var(--primary); }
+        .btn { width: 100%; padding: 16px; background: var(--dark); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; transition: 0.3s; }
+        .btn:hover { opacity: 0.9; }
         .btn:disabled { background: #bbb; cursor: not-allowed; }
         .option-btn { width: 100%; padding: 16px; margin: 10px 0; border: 1px solid #eee; border-radius: 12px; background: #fff; cursor: pointer; text-align: left; font-size: 15px; transition: 0.2s; }
         .option-btn:hover:not(:disabled) { border-color: var(--primary); background: #fff9f4; }
@@ -20,6 +22,7 @@
         #timer { font-size: 20px; font-weight: 900; color: var(--primary); text-align: right; margin-bottom: 15px; font-variant-numeric: tabular-nums; }
         .progress-bar { height: 8px; background: #eee; border-radius: 4px; margin-bottom: 25px; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: 0.4s; }
+        #reg-msg { text-align: center; font-size: 14px; margin-top: 20px; min-height: 40px; line-height: 1.4; }
     </style>
 </head>
 <body>
@@ -27,9 +30,9 @@
 <div class="container">
     <div id="registration">
         <h2 style="text-align:center; margin-top:0;">TripVita March Edition</h2>
-        <p style="text-align:center; color:#666; margin-bottom:25px;">Enter your unique Employee ID to begin.</p>
+        <p style="text-align:center; color:#666; margin-bottom:25px;">Knowledge Assessment Challenge</p>
         <input type="text" id="userName" placeholder="Full Name">
-        <input type="text" id="empId" placeholder="Employee ID (e.g. TJ1234)">
+        <input type="text" id="empId" placeholder="Employee ID (Unique)">
         <input type="email" id="userEmail" placeholder="Email Address">
         <select id="userRegion">
             <option value="">Select Region</option>
@@ -38,8 +41,8 @@
             <option value="West">West</option>
             <option value="OBJ">OBJ</option>
         </select>
-        <button id="start-btn" class="btn" onclick="validateAndStart()">Start Assessment</button>
-        <p id="reg-msg" style="text-align:center; font-size:14px; margin-top:20px; min-height:20px;"></p>
+        <button id="start-btn" class="btn" onclick="validateAndStart()">Start Quiz</button>
+        <div id="reg-msg"></div>
     </div>
 
     <div id="quiz-box" class="hidden">
@@ -60,6 +63,7 @@
 </div>
 
 <script>
+    // UPDATE THIS URL WITH YOUR WEB APP URL (ENDS IN /exec)
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2xRHKxn1U3YQNOIi8BOwVQNHSisfD-j57rUZvwMmEW0BkNoVgNEswsNqbAj9j0i2q/exec';
     
     let questions = [];
@@ -78,15 +82,20 @@
         const msg = document.getElementById('reg-msg');
         const btn = document.getElementById('start-btn');
 
-        if(!name || !empId || !email || !region) return alert("All fields are required.");
+        if(!name || !empId || !email || !region) {
+            alert("Please fill all fields.");
+            return;
+        }
 
         btn.disabled = true;
-        msg.innerText = "Checking records... 🔍";
+        msg.innerHTML = "Connecting to TripVita Server... ⏳";
         msg.style.color = "#666";
 
         try {
-            // Check Duplicate ID First
+            // STEP 1: CHECK FOR DUPLICATE ID
             const check = await fetch(`${SCRIPT_URL}?action=checkDuplicate&empId=${encodeURIComponent(empId)}`);
+            if (!check.ok) throw new Error("Server connection failed");
+            
             const checkData = await check.json();
 
             if (checkData.exists) {
@@ -95,8 +104,8 @@
                 return;
             }
 
-            // Fetch Questions
-            msg.innerText = "Loading quiz questions... 🚀";
+            // STEP 2: LOAD QUESTIONS
+            msg.innerText = "Authorized. Loading questions... 🚀";
             const qResp = await fetch(`${SCRIPT_URL}?action=getQuestions`);
             const qData = await qResp.json();
 
@@ -106,7 +115,7 @@
                 return;
             }
 
-            // Start Quiz
+            // SUCCESS -> INITIALIZE QUIZ
             questions = qData;
             userDetails = { name, empId, email, region };
             document.getElementById('registration').classList.add('hidden');
@@ -116,7 +125,8 @@
             renderQuestion();
 
         } catch (err) {
-            msg.innerText = "Error connecting to server. Try again.";
+            console.error(err);
+            msg.innerHTML = "<b style='color:red'>Error connecting to server.<br>Check your internet and refresh the page.</b>";
             btn.disabled = false;
         }
     }
@@ -127,11 +137,11 @@
             timeSpent++;
             let m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
             let s = (timeLeft % 60).toString().padStart(2, '0');
-            document.getElementById('timer').innerText = `Time: ${m}:${s}`;
+            document.getElementById('timer').innerText = `Time Left: ${m}:${s}`;
 
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
-                alert("Time up! Submitting results.");
+                alert("Time is up! Submitting results.");
                 endQuiz();
             }
         }, 1000);
@@ -190,16 +200,3 @@
         const s = (timeSpent % 60).toString().padStart(2, '0');
 
         const resultData = {
-            ...userDetails,
-            score: score,
-            totalQuestions: questions.length,
-            timeTakenSeconds: timeSpent,
-            timeFormatted: `${m}:${s}`
-        };
-
-        await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(resultData) });
-        document.getElementById('result-msg').innerText = "All responses saved!";
-    }
-</script>
-</body>
-</html>
