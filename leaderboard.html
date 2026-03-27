@@ -3,88 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TripVita | The 20/20 Club</title>
+    <title>TripVita March | 15/15 Club</title>
     <style>
         :root { --primary: #EF7F1A; --gold: #D4AF37; --dark: #1A1A1A; --bg: #fdfcfb; }
-        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 500px; background: white; border-radius: 24px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); padding: 40px; box-sizing: border-box; border-top: 8px solid var(--primary); }
-        h2 { text-align: center; color: var(--dark); margin-bottom: 5px; font-size: 26px; font-weight: 800; }
-        p.subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 30px; font-weight: 500; }
-        .leaderboard-list { display: flex; flex-direction: column; gap: 12px; }
-        .item { display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; background: #fff; border: 1px solid #eee; border-radius: 18px; transition: 0.2s; }
-        .item:hover { border-color: var(--primary); transform: translateY(-2px); }
-        .rank { font-weight: 800; width: 45px; color: var(--gold); font-size: 20px; }
-        .name { font-weight: 700; color: var(--dark); font-size: 16px; text-transform: capitalize; }
-        .region { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
-        .stats { text-align: right; }
-        .score-badge { background: #fff0e0; color: var(--primary); padding: 5px 12px; border-radius: 10px; font-weight: 800; font-size: 14px; display: inline-block; }
-        .time { font-size: 12px; color: #aaa; margin-top: 6px; display: block; font-weight: 600; }
-        .btn { margin-top: 35px; width: 100%; padding: 18px; border-radius: 14px; border: none; background: var(--dark); color: white; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .btn:hover { background: #333; }
-        .empty-state { text-align: center; color: #bbb; padding: 40px 0; font-style: italic; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 500px; background: white; border-radius: 24px; padding: 40px; box-sizing: border-box; border-top: 8px solid var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        h2 { text-align: center; color: var(--dark); margin-bottom: 5px; }
+        .item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
+        .rank { font-weight: 800; width: 35px; color: var(--gold); }
+        .name { font-weight: 700; color: var(--dark); text-transform: capitalize; }
+        .emp { font-size: 11px; color: #999; }
+        .score-badge { background: #fff0e0; color: var(--primary); padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 13px; }
     </style>
 </head>
 <body>
-
-    <div class="container">
-        <div style="text-align: center; margin-bottom: 15px;">
-            <img src="https://via.placeholder.com/150x50?text=TRIPVITA" alt="Logo" style="max-width: 150px;">
-        </div>
-        <h2>The 20/20 Club</h2>
-        <p class="subtitle">Showcasing only the perfect achievers</p>
-        
-        <div id="leaderboard-list" class="leaderboard-list">
-            <p style="text-align: center; color: #999;">Verifying scores...</p>
-        </div>
-
-        <button class="btn" onclick="location.href='index.html'">Back to Quiz</button>
+<div class="container">
+    <h2>The 15/15 Club</h2>
+    <p style="text-align:center; color:#666; font-size:13px; margin-bottom:30px">March 2026 Perfect Scorers</p>
+    <div id="leaderboard-list">
+        <p style="text-align:center; color:#999">Loading champions...</p>
     </div>
+    <button style="margin-top:30px; width:100%; padding:15px; border-radius:12px; border:none; background:var(--dark); color:white; font-weight:bold; cursor:pointer;" onclick="location.href='quiz.html'">Back to Quiz</button>
+</div>
 
-    <script>
-        // PASTE YOUR NEW DEPLOYMENT URL HERE
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxw502wHW183rThM9gNGnmCW9JMKNkR0deIGzC4Vocy1A2wtJWsW5REnHFmUqJ6lsTZ/exec';
+<script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2xRHKxn1U3YQNOIi8BOwVQNHSisfD-j57rUZvwMmEW0BkNoVgNEswsNqbAj9j0i2q/exec';
 
-        async function loadLeaderboard() {
-            try {
-                const resp = await fetch(SCRIPT_URL + '?action=getLeaderboard');
-                const data = await resp.json();
-                const list = document.getElementById('leaderboard-list');
-                list.innerHTML = '';
+    async function loadLeaderboard() {
+        try {
+            const resp = await fetch(SCRIPT_URL + '?action=getLeaderboard');
+            const data = await resp.json();
+            const list = document.getElementById('leaderboard-list');
+            list.innerHTML = '';
 
-                // If no perfect scores found
-                if (!data || data.length === 0) {
-                    list.innerHTML = '<div class="empty-state">No perfect scores yet. Be the first to join the club!</div>';
-                    return;
-                }
-
-                data.forEach((user, i) => {
-                    const row = document.createElement('div');
-                    row.className = 'item';
-                    
-                    let rankDisplay = i + 1;
-                    if(i === 0) rankDisplay = '🥇';
-                    if(i === 1) rankDisplay = '🥈';
-                    if(i === 2) rankDisplay = '🥉';
-
-                    row.innerHTML = `
-                        <div class="rank">${rankDisplay}</div>
-                        <div style="flex-grow:1">
-                            <div class="name">${user.name.toLowerCase()}</div>
-                            <div class="region">${user.region}</div>
-                        </div>
-                        <div class="stats">
-                            <div class="score-badge">Perfect 20</div>
-                            <span class="time">⏱ ${user.formattedTime}</span>
-                        </div>
-                    `;
-                    list.appendChild(row);
-                });
-            } catch (e) {
-                document.getElementById('leaderboard-list').innerHTML = '<p style="color:red; text-align:center;">Failed to connect to leaderboard.</p>';
+            if (data.length === 0) {
+                list.innerHTML = '<p style="text-align:center; color:#999">No perfect scores yet!</p>';
+                return;
             }
-        }
 
-        window.onload = loadLeaderboard;
-    </script>
+            data.forEach((user, i) => {
+                const row = document.createElement('div');
+                row.className = 'item';
+                let rankIcon = i + 1;
+                if(i === 0) rankIcon = '🥇';
+                if(i === 1) rankIcon = '🥈';
+                if(i === 2) rankIcon = '🥉';
+
+                row.innerHTML = `
+                    <div class="rank">${rankIcon}</div>
+                    <div style="flex-grow:1; margin-left:10px">
+                        <div class="name">${user.name.toLowerCase()}</div>
+                        <div class="emp">ID: ${user.empId}</div>
+                    </div>
+                    <div style="text-align:right">
+                        <div class="score-badge">15/15</div>
+                        <div style="font-size:11px; color:#aaa; margin-top:4px">⏱ ${user.formattedTime}</div>
+                    </div>
+                `;
+                list.appendChild(row);
+            });
+        } catch (e) {
+            document.getElementById('leaderboard-list').innerHTML = '<p style="color:red; text-align:center">Error loading data.</p>';
+        }
+    }
+    window.onload = loadLeaderboard;
+</script>
 </body>
 </html>
